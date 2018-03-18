@@ -1,11 +1,14 @@
 package com.medepia.pi.education.simple1;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.charset.Charset;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -23,51 +26,28 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
-import com.sap.aii.mapping.api.AbstractTrace;
-import com.sap.aii.mapping.api.AbstractTransformation;
-import com.sap.aii.mapping.api.StreamTransformationException;
-import com.sap.aii.mapping.api.TransformationInput;
-import com.sap.aii.mapping.api.TransformationOutput;
-
-public class SimpleJavaMappingCPI extends AbstractTransformation {
-
-	@Override
-	public void transform(TransformationInput tInput, TransformationOutput tOutput)
-			throws StreamTransformationException {
-		InputStream is = tInput.getInputPayload().getInputStream();
-		OutputStream os = tOutput.getOutputPayload().getOutputStream();
-
-		// String senderSystem = (String)
-		// tInput.getInputHeader().getSenderService();
-		AbstractTrace trace = getTrace();
-
-		try {
-			// input parameter example
-			// String systemParam =
-			// tInput.getInputParameters().getString("system");
-
-			process(is, os, trace, false);
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			if (trace != null) {
-				trace.addWarning(e.toString());
-			}
-			e.printStackTrace();
-			new StreamTransformationException(e.toString());
-		}
-
-	}
+public class SimpleJavaMappingCPI {
 
 	public static void main(String[] args) throws Exception {
 		String path = "test/simple_mapping/case_1";
 		SimpleJavaMappingCPI fix = new SimpleJavaMappingCPI();
 		fix.process(new FileInputStream(new File(path, "input.xml")),
-				new FileOutputStream(new File(path, "output.xml")), null, true);
+				new FileOutputStream(new File(path, "output.xml")), true);
+	}
+
+	// Simple binding to Message String Cloud Integration Java Mapping example
+	public String processString(String msg)
+			throws ParserConfigurationException, SAXException, IOException, TransformerException {
+		ByteArrayInputStream bais = new ByteArrayInputStream(msg.getBytes(Charset.forName("UTF-8")));
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		process(bais, baos, true);
+		return new String(baos.toByteArray(), Charset.forName("UTF-8"));
+
 	}
 
 	// Cloud Integration Java Mapping example
-	private void process(InputStream is, OutputStream os, AbstractTrace trace, boolean testenv) throws Exception {
+	private void process(InputStream is, OutputStream os, boolean testenv)
+			throws ParserConfigurationException, SAXException, IOException, TransformerException {
 
 		Document docIn = parse(is);
 
